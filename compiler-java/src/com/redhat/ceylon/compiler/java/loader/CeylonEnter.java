@@ -94,6 +94,7 @@ import com.redhat.ceylon.langtools.tools.javac.comp.Enter;
 import com.redhat.ceylon.langtools.tools.javac.comp.Env;
 import com.redhat.ceylon.langtools.tools.javac.comp.Todo;
 import com.redhat.ceylon.langtools.tools.javac.file.Locations;
+import com.redhat.ceylon.langtools.tools.javac.jvm.Target;
 import com.redhat.ceylon.langtools.tools.javac.main.Option;
 import com.redhat.ceylon.langtools.tools.javac.tree.EndPosTable;
 import com.redhat.ceylon.langtools.tools.javac.tree.JCTree;
@@ -152,6 +153,7 @@ public class CeylonEnter extends Enter {
     private TaskListener taskListener;
     private SourceLanguage sourceLanguage;
     private StatusPrinter sp;
+    private Target target;
 
     
     protected CeylonEnter(Context context) {
@@ -181,6 +183,7 @@ public class CeylonEnter extends Enter {
         annotate = Annotate.instance(context);
         taskListener = context.get(TaskListener.class);
         sourceLanguage = SourceLanguage.instance(context);
+        target = Target.instance(context);
 
         // now superclass init
         init(context);
@@ -530,16 +533,16 @@ public class CeylonEnter extends Enter {
         AnnotationModelVisitor amv = new AnnotationModelVisitor(gen);
         DefiniteAssignmentVisitor dav = new DefiniteAssignmentVisitor();
         TypeParameterCaptureVisitor tpCaptureVisitor = new TypeParameterCaptureVisitor();
-        InterfaceVisitor localInterfaceVisitor = new InterfaceVisitor();
+        InterfaceVisitor localInterfaceVisitor = new InterfaceVisitor(target);
         // Extra phases for the compiler
         
-        // boxing visitor depends on boxing decl
         i=1;
         for (PhasedUnit pu : listOfUnits) {
             if(sp != null)
                 progressPreparation(2, i++, size, pu);
             pu.getCompilationUnit().visit(uv);
         }
+        // boxing visitor depends on boxing decl
         i=1;
         for (PhasedUnit pu : listOfUnits) {
             if(sp != null)
