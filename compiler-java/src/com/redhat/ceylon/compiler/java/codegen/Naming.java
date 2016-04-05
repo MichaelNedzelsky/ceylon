@@ -2017,6 +2017,12 @@ public class Naming extends NamingBase implements LocalId {
         return suffixName(Suffix.$impl, name);
     }
     
+    public String getTypeArgumentMethodName(TypeParameter tp) {
+        assert(tp.getContainer() instanceof Interface
+                && ((Interface)tp.getContainer()).isUseDefaultMethods()); 
+        return ("$reified$"+tp.getContainer().getQualifiedNameString()+"."+tp.getName()).replace('.', '$').replace("::", "$");
+    }
+    
     public String getTypeArgumentDescriptorName(TypeParameter tp) {
         String name;
         if(tp.isCaptured()){
