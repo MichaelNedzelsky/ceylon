@@ -271,6 +271,7 @@ class Strategy {
      */
     public static boolean onlyOnCompanion(Declaration model) {
         return Decl.withinInterface(model)
+                && !((Interface)model.getContainer()).isUseDefaultMethods()
                 && (model instanceof ClassOrInterface
                         || !Decl.isShared(model));
     }
