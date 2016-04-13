@@ -2316,8 +2316,7 @@ public class ClassTransformer extends AbstractTransformer {
                 expr = expressionGen().applyErasureAndBoxing(expr, paramModel.getType(), true, CodegenUtil.getBoxingStrategy(method), paramModel.getType());
                 body = make().Return(expr);
             }
-            classBuilder.methods(transformMethod(method, null, methodDecl, methodDecl.getParameterLists(),
-                    methodDecl,
+            classBuilder.methods(transformMethod(method, methodDecl,
                     true, method.isActual(), true, 
                     List.of(body), new DaoThis(methodDecl, methodDecl.getParameterLists().get(0)), false));
         }
@@ -4083,9 +4082,9 @@ public class ClassTransformer extends AbstractTransformer {
             // Transform the definition to the companion class, how depends
             // on what kind of method it is
             List<MethodDefinitionBuilder> companionDefs;
-            if (def instanceof Tree.MethodDeclaration) {
-                final SpecifierExpression specifier = ((Tree.MethodDeclaration) def).getSpecifierExpression();
-                if (specifier == null) {
+            if (def instanceof Tree.MethodDeclaration
+                    && ((Tree.MethodDeclaration) def).getSpecifierExpression() == null) {
+                
                     // formal or abstract 
                     // (still need overloads and DPMs on the companion)
                     companionDefs = transformMethod(def,  
@@ -4095,25 +4094,14 @@ public class ClassTransformer extends AbstractTransformer {
                             null,
                             new DaoCompanion(def, def.getParameterLists().get(0)),
                             false);   
-                } else {
-                    companionDefs = transformMethod(def,
-                            true,
-                            false,
-                            !model.isShared(),
-                            transformMplBodyUnlessSpecifier(def, model, body),
-                            new DaoCompanion(def, def.getParameterLists().get(0)),
-                            false);
-                }
-            } else if (def instanceof Tree.MethodDefinition) {
-                companionDefs = transformMethod(def,  
+            } else {
+                companionDefs = transformMethod(def,
                         true,
                         false,
                         !model.isShared(),
                         transformMplBodyUnlessSpecifier(def, model, body),
                         new DaoCompanion(def, def.getParameterLists().get(0)),
                         false);
-            } else {
-                throw BugException.unhandledNodeCase(def);
             }
             if(!companionDefs.isEmpty())
                 classBuilder.getCompanionBuilder((TypeDeclaration)model.getContainer())
@@ -4167,9 +4155,6 @@ public class ClassTransformer extends AbstractTransformer {
             DaoBody daoTransformation, 
             boolean defaultValuesBody) {
         return transformMethod(def.getDeclarationModel(), 
-                def.getTypeParameterList(),
-                def,
-                def.getParameterLists(),
                 def,
                 transformMethod, actual, includeAnnotations, body,
                 daoTransformation,
@@ -4182,19 +4167,17 @@ public class ClassTransformer extends AbstractTransformer {
      */
     private List<MethodDefinitionBuilder> transformMethod(
             final Function methodModel,
-            Tree.TypeParameterList typeParameterList,
-            Tree.AnyMethod node, 
-            java.util.List<Tree.ParameterList> parameterLists,
-            Tree.Declaration annotated,
+            Tree.AnyMethod method,
             boolean transformMethod, boolean actual, boolean includeAnnotations, List<JCStatement> body, 
             DaoBody daoTransformation, 
             boolean defaultValuesBody) {
+        
+        Tree.ParameterList parameterList = method.getParameterLists().get(0);
         
         ListBuffer<MethodDefinitionBuilder> lb = new ListBuffer<MethodDefinitionBuilder>();
         Declaration refinedDeclaration = methodModel.getRefinedDeclaration();
         
         boolean hasOverloads = false;
-        Tree.ParameterList parameterList = parameterLists.get(0);
         
         for (final Tree.Parameter parameter : parameterList.getParameters()) {
             Parameter parameterModel = parameter.getParameterModel();
@@ -4207,7 +4190,7 @@ public class ClassTransformer extends AbstractTransformer {
                     if (daoTransformation != null && 
                             (daoTransformation instanceof DaoCompanion == false || 
                                 body != null)) {
-                        lb.append(makeDefaultParameterOverload(methodModel, node, body,
+                        lb.append(makeDefaultParameterOverload(methodModel, method, body,
                                 parameterList, parameter));
                         hasOverloads = true;
                     }
@@ -4254,7 +4237,7 @@ public class ClassTransformer extends AbstractTransformer {
                 Parameter parameterModel = parameter.getParameterModel();
                 List<JCAnnotation> annotations = null;
                 if (includeAnnotations){
-                    Tree.TypedDeclaration typedDeclaration = Decl.getMemberDeclaration(annotated, parameter);
+                    Tree.TypedDeclaration typedDeclaration = Decl.getMemberDeclaration(method, parameter);
                     // it can be null in the case of specifier refinement with no param list, but which we still optimise
                     // to a real method
                     // f = function(Integer param) => 2;
@@ -4268,7 +4251,7 @@ public class ClassTransformer extends AbstractTransformer {
                 methodBuilder.isOverride(methodModel.isActual());
             }
             if (includeAnnotations) {
-                methodBuilder.userAnnotations(expressionGen().transformAnnotations(OutputElement.METHOD, annotated));
+                methodBuilder.userAnnotations(expressionGen().transformAnnotations(OutputElement.METHOD, method));
                 methodBuilder.modelAnnotations(methodModel.getAnnotations());
             } else {
                 methodBuilder.ignoreModelAnnotations();
@@ -4278,7 +4261,7 @@ public class ClassTransformer extends AbstractTransformer {
             
             if (createCanonical) {
                 // Creates method that redirects to the "canonical" method containing the actual body
-                MethodDefinitionBuilder bridgeToCanonical = new BridgeToCanonicalMethod(node, parameterList, methodBuilder, methodModel)
+                MethodDefinitionBuilder bridgeToCanonical = new BridgeToCanonicalMethod(method, parameterList, methodBuilder, methodModel)
                     .makeOverload(
                         parameterList.getModel(),
                         null,
