@@ -269,16 +269,6 @@ public class MethodDefinitionBuilder
         return this;
     }
     
-    public MethodDefinitionBuilder addModifiers(long modifiers) {
-        this.modifiers |= modifiers;
-        return this;
-    }
-    
-    public MethodDefinitionBuilder removeModifiers(long modifiers) {
-        this.modifiers &= ~modifiers;
-        return this;
-    }
-    
     public long getModifiers() {
         return this.modifiers;
     }
