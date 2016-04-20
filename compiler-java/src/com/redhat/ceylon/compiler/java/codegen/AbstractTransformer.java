@@ -5261,7 +5261,7 @@ public abstract class AbstractTransformer implements Transformation {
             Scope container = tp.getContainer();
             if(container instanceof Interface
                     && ((Interface)container).isUseDefaultMethods()){
-                return make().Apply(null, naming.makeUnquotedIdent(naming.getTypeArgumentMethodName(tp)), List.<JCExpression>nil()); 
+                return makeReifiedTypeArgumentAccessorInvocation(tp); 
             }
             String name = naming.getTypeArgumentDescriptorName(tp);
             if(!qualified || isTypeParameterSubstituted(tp))
@@ -5281,6 +5281,10 @@ public abstract class AbstractTransformer implements Transformation {
         } else {
             throw BugException.unhandledDeclarationCase(declaration);
         }
+    }
+
+    protected JCMethodInvocation makeReifiedTypeArgumentAccessorInvocation(TypeParameter tp) {
+        return make().Apply(null, naming.makeQualIdent(expressionGen().receiver.qualifier(), naming.getTypeArgumentMethodName(tp)), List.<JCExpression>nil());
     }
     
     private JCExpression makeTupleTypeDescriptor(Type pt, boolean firstElementOptional) {

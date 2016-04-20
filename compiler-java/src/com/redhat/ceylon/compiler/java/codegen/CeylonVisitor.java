@@ -31,6 +31,7 @@ import java.util.Map;
 
 import com.redhat.ceylon.common.Backend;
 import com.redhat.ceylon.compiler.java.codegen.ClassTransformer.AttrTx;
+import com.redhat.ceylon.compiler.java.codegen.ExpressionTransformer.DollarThis;
 import com.redhat.ceylon.compiler.java.codegen.Naming.DeclNameFlag;
 import com.redhat.ceylon.compiler.java.codegen.Naming.SyntheticName;
 import com.redhat.ceylon.compiler.java.codegen.recovery.Drop;
@@ -576,19 +577,23 @@ public class CeylonVisitor extends Visitor {
             classBuilder.attribute(gen.classGen().transform(decl, AttrTx.THIS));
         } else if (Decl.withinInterface(decl)) {
             Value model = decl.getDeclarationModel();
+            Interface iface = (Interface)model.getContainer();
             if (!gen.classGen().useDefaultMethod(model)) {
                 classBuilder.attribute(gen.classGen().transform(decl, AttrTx.THIS));
                 AttributeDefinitionBuilder adb = gen.classGen().transform(decl, AttrTx.COMPANION);
                 if (model.isShared()) {
                     adb.ignoreAnnotations();
                 }
-                classBuilder.getCompanionBuilder((Interface)model.getContainer()).attribute(adb);
+                classBuilder.getCompanionBuilder(iface).attribute(adb);
             } else {
                 if (model.isFormal() || !model.isShared()) {
                     classBuilder.attribute(gen.classGen().transform(decl, AttrTx.DEFAULT));
                 } else {
                     classBuilder.attribute(gen.classGen().transform(decl, AttrTx.BRIDGE_TO_STATIC));
+                    ExpressionTransformer eg = gen.expressionGen();
+                    eg.receiver = eg.new DollarThis(iface);
                     classBuilder.attribute(gen.classGen().transform(decl, AttrTx.STATIC));
+                    eg.receiver = eg.receiver.parent;
                 }
             }
         } else if (Decl.isToplevel(decl)) {
@@ -617,19 +622,23 @@ public class CeylonVisitor extends Visitor {
             classBuilder.attribute(gen.classGen().transform(decl, AttrTx.THIS));
         } else if (Decl.withinInterface(decl)) {
             Setter model = decl.getDeclarationModel();
+            Interface iface = (Interface)model.getContainer();
             if (!gen.classGen().useDefaultMethod(model)) {
                 classBuilder.attribute(gen.classGen().transform(decl, AttrTx.THIS));
                 AttributeDefinitionBuilder adb = gen.classGen().transform(decl, AttrTx.COMPANION);
                 if (decl.getDeclarationModel().isShared()) {
                     adb.ignoreAnnotations();
                 }
-                classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(adb);
+                classBuilder.getCompanionBuilder(iface).attribute(adb);
             } else {
                 if (model.isFormal() || !model.isShared()) {
                     classBuilder.attribute(gen.classGen().transform(decl, AttrTx.DEFAULT));
                 } else {
                     classBuilder.attribute(gen.classGen().transform(decl, AttrTx.BRIDGE_TO_STATIC));
+                    ExpressionTransformer eg = gen.expressionGen();
+                    eg.receiver = eg.new DollarThis(iface);
                     classBuilder.attribute(gen.classGen().transform(decl, AttrTx.STATIC));
+                    eg.receiver = eg.receiver.parent;
                 }
             }
         } else if (Decl.isToplevel(decl)) {
