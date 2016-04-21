@@ -183,6 +183,8 @@ public class Naming extends NamingBase implements LocalId {
         }
         if ((namingOptions & NA_CANONICAL_METHOD) != 0) {
             methodName = suffixName(Suffix.$canonical$, methodName);
+        } else if ((namingOptions & NA_STATIC_METHOD) != 0) {
+            methodName = suffixName(Suffix.$static$, methodName);
         }
         return methodName;
     }
@@ -1234,9 +1236,11 @@ public class Naming extends NamingBase implements LocalId {
     static final int NA_WRAPPER_WITH_THIS = 1<<10;
     /** Add "$" to the end of the method name */
     static final int NA_CANONICAL_METHOD = 1<<11;
-
+    
     private static final int __NA_IDENT_PARAMETER_ALIASED = 1<<12;
     static final int NA_IDENT_PARAMETER_ALIASED = NA_IDENT | __NA_IDENT_PARAMETER_ALIASED;
+    
+    static final int NA_STATIC_METHOD = 1<<13;
     
     
     /**
