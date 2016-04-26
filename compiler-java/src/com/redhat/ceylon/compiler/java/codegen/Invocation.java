@@ -1256,7 +1256,7 @@ class NamedArgumentInvocation extends Invocation {
         this.producedReference = producedReference;
         namedArgumentList = invocation.getNamedArgumentList();
         varBaseName = gen.naming.alias("arg");
-        callVarName = varBaseName.suffixedBy(Suffix.$callable$);
+        callVarName = ExpressionTransformer.isSuperOrSuperOf(getQmePrimary()) ? null : varBaseName.suffixedBy(Suffix.$callable$);
     }
     
     @Override
@@ -1351,11 +1351,11 @@ class NamedArgumentInvocation extends Invocation {
             break;
         case OUTER:
             if(getQmePrimary() != null && !Decl.isConstructor(getPrimaryDeclaration()))
-                thisExpr = callVarName.makeIdent();
+                thisExpr = callVarName != null ? callVarName.makeIdent() : gen.naming.makeThis();
             break;
         case OUTER_COMPANION:
             if (getQmePrimary() != null && !Decl.isConstructor(getPrimaryDeclaration())) {
-                thisExpr = callVarName.makeIdent();
+                thisExpr = callVarName != null ? callVarName.makeIdent() : gen.naming.makeThis();
             }
             break;
         case INIT_COMPANION:
@@ -1719,7 +1719,7 @@ class NamedArgumentInvocation extends Invocation {
             } else {
                 thisType = gen.makeJavaType(target.getQualifyingType(), JT_NO_PRIMITIVES);
             }
-            defaultedParameterInstance = callVarName.makeIdent();
+            defaultedParameterInstance = callVarName != null ? callVarName.makeIdent() : gen.naming.makeThis();
         }
         JCVariableDecl thisDecl = gen.makeVar(varBaseName.suffixedBy(Suffix.$argthis$), 
                 thisType, 
@@ -1740,7 +1740,8 @@ class NamedArgumentInvocation extends Invocation {
         if (vars != null 
                 && !vars.isEmpty() 
                 && primaryExpr != null
-                && selector != null) {
+                && selector != null
+                && !ExpressionTransformer.isSuperOrSuperOf(getQmePrimary())) {
             // Prepare the first argument holding the primary for the call
             Type type = ((Tree.MemberOrTypeExpression)getPrimary()).getTarget().getQualifyingType();
             JCExpression varType;
