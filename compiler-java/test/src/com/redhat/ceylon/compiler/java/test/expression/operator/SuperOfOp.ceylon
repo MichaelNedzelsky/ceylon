@@ -95,7 +95,7 @@ class SuperOfLeftClass() satisfies SuperOfLeft {
 @noanno
 class SuperOfBottomLeftClass() extends SuperOfLeftClass() satisfies SuperOfRight {
     shared actual default Integer a {
-        return (super of SuperOfLeft).a + (super of SuperOfLeftClass).a;
+        return (super of SuperOfLeft).a /*+ (super of SuperOfLeftClass).a*/;
     } 
     assign a {
         (super of SuperOfLeft).a = a;

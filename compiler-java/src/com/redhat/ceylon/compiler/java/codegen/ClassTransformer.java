@@ -210,7 +210,6 @@ public class ClassTransformer extends AbstractTransformer {
 
     public List<JCTree> transformAsJava8Interface(final Tree.InterfaceDefinition def) {
         final Interface model = def.getDeclarationModel();
-        model.setCompanionClassNeeded(false);
         naming.clearSubstitutions(model);
         
         String ceylonClassName = def.getIdentifier().getText();
@@ -294,7 +293,9 @@ public class ClassTransformer extends AbstractTransformer {
         Interface satisfied = (Interface)satisfiedType.getDeclaration();
         if (!satisfied.isUseDefaultMethods()
                 && (satisfied instanceof LazyInterface == false || ((LazyInterface)satisfied).isCeylon())
-                && !satisfied.equals(typeFact().getIdentifiableType().getDeclaration())){
+                && !satisfied.equals(typeFact().getIdentifiableType().getDeclaration())
+                && hasImpl(satisfied)){
+            at(st);
                 //&& model.isCompanionClassNeeded()){
             // A superinterface uses companion classes. 
             // So some expressions will expect there to be a companion field
@@ -2639,11 +2640,7 @@ public class ClassTransformer extends AbstractTransformer {
                     }
                     // make sure we get the right instantiation of the interface
                     satisfiedType = model.getType().getSupertype(decl);
-                    if (((Interface)decl).isUseDefaultMethods()) {
-                        continue;
-                    } else {
-                        concreteMembersFromSuperinterfaces(model, classBuilder, satisfiedType, satisfiedInterfaces);
-                    }
+                    concreteMembersFromSuperinterfaces(model, classBuilder, satisfiedType, satisfiedInterfaces);
                 } catch (BugException e) {
                     e.addError(type);
                 }
@@ -2718,6 +2715,8 @@ public class ClassTransformer extends AbstractTransformer {
             // let's not try to implement CMI for Java interfaces
             return;
         }
+        
+        if (!((Interface)satisfiedType.getDeclaration()).isUseDefaultMethods()) {
         
         // For each super interface
         for (Declaration member : sortedMembers(iface.getMembers())) {
@@ -2907,6 +2906,7 @@ public class ClassTransformer extends AbstractTransformer {
                     throw new BugException("unhandled concrete interface member " + member.getQualifiedNameString() + " " + member.getClass());
                 }
             }
+        }
         }
         
         // Add $impl instances for the whole interface hierarchy
@@ -3702,7 +3702,7 @@ public class ClassTransformer extends AbstractTransformer {
                     // Generate getter in companion class
                     classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(makeGetter(decl, AttrTx.COMPANION, lazy));
                 } else if (useDefaultMethod(model)) {
-                    if (model.isFormal() || !model.isShared()) {
+                    if (true/*model.isFormal() || !model.isShared()*/) {
                         classBuilder.attribute(makeGetter(decl, AttrTx.DEFAULT, lazy));
                     } else {
                         classBuilder.attribute(makeGetter(decl, AttrTx.BRIDGE_TO_STATIC, lazy));
@@ -3723,7 +3723,7 @@ public class ClassTransformer extends AbstractTransformer {
                         // Generate setter in companion class
                         classBuilder.getCompanionBuilder((Interface)decl.getDeclarationModel().getContainer()).attribute(makeSetter(decl, AttrTx.COMPANION, lazy));
                     } else if (useDefaultMethod(model)) {
-                        if (model.isFormal() || !model.isShared()) {
+                        if (true/*model.isFormal() || !model.isShared()*/) {
                             classBuilder.attribute(makeSetter(decl, AttrTx.DEFAULT, lazy));
                         } else {
                             classBuilder.attribute(makeSetter(decl, AttrTx.BRIDGE_TO_STATIC, lazy));
@@ -4197,7 +4197,7 @@ public class ClassTransformer extends AbstractTransformer {
         boolean refinedResultType = !model.getType().isExactly(
                 ((TypedDeclaration)model.getRefinedDeclaration()).getType());
         ListBuffer<MethodDefinitionBuilder> lb;
-        if (model.isFormal() || !model.isShared()) {
+        if (true/*model.isFormal() || !model.isShared()*/) {
             lb = transformMethod(model,
                     def,
                     true, true, true, body,
