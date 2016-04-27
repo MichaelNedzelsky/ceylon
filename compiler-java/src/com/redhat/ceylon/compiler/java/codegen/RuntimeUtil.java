@@ -239,4 +239,8 @@ class RuntimeUtil {
     public JCExpression recover() {
         return makeUtilInvocation(null, "recover", List.<JCExpression>nil());
     }
+    
+    public JCExpression objectString(JCExpression o) {
+        return makeUtilInvocation(null, "objectString", List.<JCExpression>of(o));
+    }
 }

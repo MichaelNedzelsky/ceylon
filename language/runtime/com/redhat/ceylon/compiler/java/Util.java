@@ -1787,4 +1787,8 @@ public class Util {
         MethodHandle handle = lookup.unreflectSetter(field);
         return handle;
     }
+    
+    public static String objectString(Object o) {
+        return o.getClass().getName() + "@" + java.lang.Integer.toHexString(o.hashCode());
+    }
 }
