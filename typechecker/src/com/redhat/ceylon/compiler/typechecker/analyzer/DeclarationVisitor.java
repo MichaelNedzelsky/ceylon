@@ -2615,7 +2615,7 @@ public abstract class DeclarationVisitor extends Visitor {
                                 outerType.getTypeModel()
                                     .getDeclaration();
                         return AnalyzerUtil.getTypeMember(
-                                dec, name, null, false, unit);
+                                dec, name, null, false, unit, scope);
                     }
                 }
                 @Override
