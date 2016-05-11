@@ -52,6 +52,11 @@ public class IssuesTests_6000_6499 extends CompilerTests {
     }
     
     @Test
+    public void testBug6014() {
+        compileAndRun("com.redhat.ceylon.compiler.java.test.issues.bug60xx.bug6014", "bug60xx/Bug6014.ceylon");
+    }
+
+    @Test
     public void testBug6037() throws Throwable {
         ProcessBuilder pb = new ProcessBuilder("ceylon", "compile", "--src=test/src", "com.redhat.ceylon.compiler.java.test.issues.bug60xx.bug6037");
         pb.inheritIO();
