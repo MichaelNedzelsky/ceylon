@@ -572,6 +572,9 @@ public class Unit {
         }
     }
     
+    public void setJavaLangPackageIfNeeded(Iterable<Module> modules) {
+    }
+    
     protected Package getJavaLangPackage() {
         return getPackage().getModule().getPackage("java.lang");
     }

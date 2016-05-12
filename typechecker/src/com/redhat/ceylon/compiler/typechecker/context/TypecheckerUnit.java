@@ -36,6 +36,18 @@ public class TypecheckerUnit extends Unit {
         setPackage(thePackage);
     }
 
+    @Override
+    public void setJavaLangPackageIfNeeded(Iterable<Module> modules) {
+    	if (javaLangPackage != null) return;
+    	
+        for (Module module: modules) {
+            if ("java.base".equals(module.getNameAsString())) {
+                javaLangPackage = module.getPackage("java.lang");
+                break;
+            }
+        }
+    }
+
     /** 
      * Override this because it's possible to see java.lang.Iterable 
      * (for example) without a dependency on java.base when importing 

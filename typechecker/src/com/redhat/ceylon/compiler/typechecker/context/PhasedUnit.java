@@ -338,6 +338,12 @@ public class PhasedUnit {
             if (!declarationsScanned) {
                 processLiterals();
                 scanningDeclarations = true;
+
+                unit.setJavaLangPackageIfNeeded(
+                        moduleManagerRef.get()
+                            .getModules()
+                            .getListOfModules());
+                
                 //System.out.println("Scan declarations for " + fileName);
                 DeclarationVisitor dv = new DeclarationVisitor(unit) {
                     @Override
