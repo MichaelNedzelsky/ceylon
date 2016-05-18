@@ -182,6 +182,13 @@ public class IssuesTests_6000_6499 extends CompilerTests {
     }
     
     @Test
+    public void testBug6276() {
+        assertErrors("bug62xx/Bug6276",
+                new CompilerError(1, "incorrect syntax: mismatched token end of file expecting closing brace '}'")
+                );
+    }
+
+    @Test
     public void testBug6277() {
         compareWithJavaSource("bug62xx/Bug6277");
     }
