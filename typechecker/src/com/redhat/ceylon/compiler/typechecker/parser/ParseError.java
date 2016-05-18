@@ -2,12 +2,14 @@ package com.redhat.ceylon.compiler.typechecker.parser;
 
 import org.antlr.runtime.Parser;
 import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.Token;
 
 public class ParseError extends RecognitionError {
 	
 	private Parser parser;
 	private int code;
 	private int expecting;
+	private Token prevToken; // last token before EOF on hidden channel, if error occurred on EOF
 	
 	public ParseError(Parser parser, RecognitionException re, int expecting, String[] tn) {
 		this(parser, re, tn, -1);
@@ -18,7 +20,23 @@ public class ParseError extends RecognitionError {
         super(re, tn);
         this.parser = parser;
         this.code = code;
+        if (re.token.getType() == Token.EOF && re.index > 0) {
+        	Token token = parser.getTokenStream().get(re.index-1);
+        	if (token.getChannel() == Token.HIDDEN_CHANNEL) {
+        		prevToken = token;
+        	}
+        }
     }
+    
+	@Override
+	public int getLine() {
+		return prevToken != null ? prevToken.getLine() : super.getLine();
+	}
+	
+	@Override
+	public int getCharacterInLine() {
+		return prevToken != null ? prevToken.getCharPositionInLine() : super.getCharacterInLine();
+	}
 
 	public String getToken() {
 		return recognitionException.token.getText();
